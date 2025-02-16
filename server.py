@@ -20,7 +20,7 @@ DEFAULT_MODEL_CONFIG = {
     "top_p": 0.9,
     "top_k": 40
 }
-DEFAULT_SYSTEM_PROMPT = "你是一个 AI VTuber，与你的观众互动，并提供有趣的回答。"
+DEFAULT_SYSTEM_PROMPT = "你是一个 AI VTuber，与你的观众互动，并提供有趣回答。"
 
 app = FastAPI()
 
