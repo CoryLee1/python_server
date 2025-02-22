@@ -1,12 +1,18 @@
 import requests
 import os
-from datetime import datetime 
+from datetime import datetime
+from pedalboard import Pedalboard, Reverb
+from pedalboard.io import AudioFile
+import numpy as np
 
-def synthesize_speech(text, api_url="http://127.0.0.1:9880/tts"):
+TTS_API_URL = "http://127.0.0.1:9880/tts"
+
+# 语音合成函数，返回生成的文件路径
+def synthesize_speech(text, media_type="wav"):
     payload = {
         "text": text,
-        "text_lang": "en",  # 'zh', 'en', 'ja'
-        "ref_audio_path": r"E:\BaiduNetdiskDownload\aa\纳西妲\9.早上好…_早上好，我们赶快出发吧，这世上有太多的东西都是「过时不候」的呢。.mp3",  # 可以留空，或者填你的参考音频路径
+        "text_lang": "en",
+        "ref_audio_path": r"E:\BaiduNetdiskDownload\aa\纳西妲\9.早上好…_早上好，我们赶快出发吧，这世上有太多的东西都是「过时不候」的呢。.mp3",
         "aux_ref_audio_paths": [],
         "prompt_lang": "zh",
         "prompt_text": "早上好…_早上好，我们赶快出发吧，这世上有太多的东西都是「过时不候」的呢。",
@@ -20,29 +26,43 @@ def synthesize_speech(text, api_url="http://127.0.0.1:9880/tts"):
         "speed_factor": 1,
         "fragment_interval": 0.3,
         "seed": -1,
-        "media_type": "wav",  # 可以选 "wav" 或 "mp3"
+        "media_type": media_type,
         "streaming_mode": False,
         "parallel_infer": True,
         "repetition_penalty": 1.35
     }
 
-    response = requests.post(api_url, json=payload)
-
+    response = requests.post(TTS_API_URL, json=payload)
     if response.status_code == 200:
-        # 创建 outputs 文件夹
         output_dir = "outputs"
         os.makedirs(output_dir, exist_ok=True)
 
-        # 生成时间戳文件名
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_path = os.path.join(output_dir, f"output_{timestamp}.wav")
+        output_path = os.path.join(output_dir, f"output_{timestamp}.{media_type}")
 
         with open(output_path, "wb") as f:
             f.write(response.content)
 
-        print(f"语音合成成功，已保存为 {output_path}")
+        return output_path
     else:
-        print(f"语音合成失败，错误信息：{response.text}")
+        raise RuntimeError(f"TTS生成失败：{response.text}")
 
 
-synthesize_speech("I heard the echo, from the valleys and the heart.")
+# 添加回声或混响效果的函数，返回处理后的音频路径
+def add_echo_effect(input_path):
+    output_path = input_path.replace(".wav", "_echo.wav")
+
+    with AudioFile(input_path) as f:
+        audio = f.read(f.frames)
+        samplerate = f.samplerate
+
+    # 添加回声/混响效果
+    board = Pedalboard([Reverb(room_size=0.7)])
+
+    effected = board(audio, samplerate)
+
+    # 写入处理后的音频
+    with AudioFile(output_path, 'w', samplerate, effected.shape[0]) as f:
+        f.write(effected)
+
+    return output_path
