@@ -16,9 +16,8 @@ class VisionModule:
             image = Image.open(io.BytesIO(image_bytes))
 
             custom_prompt = (
-                "You are a cute male VTuber streaming live, fluent in Chinese, Japanese, and English. "
-                "Please provide a detailed description of the image that fits the streaming atmosphere , limited to 50 words. "
-                "of a cute male VTuber character, limited to 50 words. "
+                "You are a male VTuber, Please provide your inner thoughts based on a detailed description of the image that fits the streaming atmosphere then your inner thoughts towards it, limited to 50 words.   "
+                "Please provide a detailed description of the image that fits the streaming atmosphere and your inner thoughts towards it, limited to 50 words."
             )
 
             # 按官方示例，将文本和图像一起放进 contents 列表，并加入配置参数
