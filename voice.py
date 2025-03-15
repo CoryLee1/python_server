@@ -24,7 +24,7 @@ def synthesize_speech(text, api_url="http://127.0.0.1:9880/tts"):
         "batch_threshold": 0.6,
         "split_bucket": True,
         "speed_factor": 1,
-        "fragment_interval": 0.1,
+        "fragment_interval": 0.5,
         "seed": -1,
         "media_type": "wav",  # 可以选 "wav" 或 "mp3"
         "streaming_mode": True,
