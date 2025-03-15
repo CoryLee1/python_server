@@ -6,8 +6,8 @@ import os
 import sys
 import asyncio
 from dotenv import load_dotenv
-from vision_module import VisionModule
-from voice import synthesize_speech, add_echo_effect
+from vision_module import VisionModule #  vision_module.py 的文件
+from voice import synthesize_speech, add_echo_effect #  voice.py 的文件
 
 # 确保输出目录存在
 OUTPUT_DIR = os.path.abspath("outputs")
