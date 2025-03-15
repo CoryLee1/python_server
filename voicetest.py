@@ -5,9 +5,6 @@ from pedalboard import Pedalboard, Reverb
 from pedalboard.io import AudioFile
 import numpy as np
 
-TTS_API_URL = "http://127.0.0.1:9880/tts"
-
-# 语音合成函数，返回生成的文件路径
 def synthesize_speech(text, api_url="http://127.0.0.1:9880/tts"):
     payload = {
         "text": text,
@@ -32,37 +29,23 @@ def synthesize_speech(text, api_url="http://127.0.0.1:9880/tts"):
         "repetition_penalty": 1.5
     }
 
-    response = requests.post(TTS_API_URL, json=payload)
+    response = requests.post(api_url, json=payload)
+
     if response.status_code == 200:
+        # 创建 outputs 文件夹
         output_dir = "outputs"
         os.makedirs(output_dir, exist_ok=True)
 
+        # 生成时间戳文件名
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_path = os.path.join(output_dir, f"output_{timestamp}.{media_type}")
+        output_path = os.path.join(output_dir, f"output_{timestamp}.wav")
 
         with open(output_path, "wb") as f:
             f.write(response.content)
 
-        return output_path
+        print(f"语音合成成功，已保存为 {output_path}")
     else:
-        raise RuntimeError(f"TTS生成失败：{response.text}")
+        print(f"语音合成失败，错误信息：{response.text}")
 
 
-# 添加回声或混响效果的函数，返回处理后的音频路径
-def add_echo_effect(input_path):
-    output_path = input_path.replace(".wav", "_echo.wav")
-
-    with AudioFile(input_path) as f:
-        audio = f.read(f.frames)
-        samplerate = f.samplerate
-
-    # 添加回声/混响效果
-    board = Pedalboard([Reverb(room_size=0.7)])
-
-    effected = board(audio, samplerate)
-
-    # 写入处理后的音频
-    with AudioFile(output_path, 'w', samplerate, effected.shape[0]) as f:
-        f.write(effected)
-
-    return output_path
+synthesize_speech("That said, I firmly reject the **narrative of AI as merely a tool for cost-cutting and efficiency gains**, as well as the fear-mongering around it. These are often tactics used by the market to capture attention and manufacture anxiety. As creators, we should **redirect the conversation towards where attention should be placed**—exploring new ways to **co-create with AI** rather than being caught up in artificially induced fears or oversimplified narratives.At the same time, I think **decentralized, lightweight generative models** are a direction worth looking forward to. Giving creators the ability to **customize and have partial ownership over their AI agents** presents an exciting vision for the future—one where AI becomes an extension of individual artistic intent rather than a monolithic, corporate-controlled tool.")
