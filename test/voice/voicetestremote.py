@@ -5,11 +5,11 @@ from pedalboard import Pedalboard, Reverb
 from pedalboard.io import AudioFile
 import numpy as np
 
-def synthesize_speech(text, api_url="http://127.0.0.1:9880/tts"):
+def synthesize_speech(text, api_url="https://9pxgcoxlb9fk3n-9880.proxy.runpod.net/tts"):
     payload = {
         "text": text,
         "text_lang": "en",  # 'zh', 'en', 'ja'
-        "ref_audio_path": r"E:\BaiduNetdiskDownload\aa\纳西妲\9.早上好…_早上好，我们赶快出发吧，这世上有太多的东西都是「过时不候」的呢。.mp3",  # 可以留空，或者填你的参考音频路径
+        "ref_audio_path": "/workspace/ref_audio.mp3",  # 可以留空，或者填你的参考音频路径
         "aux_ref_audio_paths": [],
         "prompt_lang": "zh",
         "prompt_text": "早上好…_早上好，我们赶快出发吧，这世上有太多的东西都是「过时不候」的呢。",
