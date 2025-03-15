@@ -5,10 +5,10 @@ from pedalboard import Pedalboard, Reverb
 from pedalboard.io import AudioFile
 import numpy as np
 
-TTS_API_URL = "http://127.0.0.1:9880/tts"
+TTS_API_URL = "https://9pxgcoxlb9fk3n-9880.proxy.runpod.net/tts"
 
 # 语音合成函数，返回生成的文件路径
-def synthesize_speech(text, api_url="http://127.0.0.1:9880/tts"):
+def synthesize_speech(text, api_url="https://9pxgcoxlb9fk3n-9880.proxy.runpod.net/tts"):
     payload = {
         "text": text,
         "text_lang": "en",  # 'zh', 'en', 'ja'
