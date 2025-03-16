@@ -3,12 +3,11 @@ import os
 from datetime import datetime
 from pedalboard import Pedalboard, Reverb
 from pedalboard.io import AudioFile
-import numpy as np
 
-TTS_API_URL = "https://9pxgcoxlb9fk3n-9880.proxy.runpod.net/tts"
 
 # 语音合成函数，返回生成的文件路径
 def synthesize_speech(text, api_url="https://9pxgcoxlb9fk3n-9880.proxy.runpod.net/tts"):
+    media_type = "wav"
     payload = {
         "text": text,
         "text_lang": "en",  # 'zh', 'en', 'ja'
@@ -26,13 +25,13 @@ def synthesize_speech(text, api_url="https://9pxgcoxlb9fk3n-9880.proxy.runpod.ne
         "speed_factor": 1,
         "fragment_interval": 0.5,
         "seed": -1,
-        "media_type": "wav",  # 可以选 "wav" 或 "mp3"
+        "media_type": media_type,  # 可以选 "wav" 或 "mp3"
         "streaming_mode": True,
         "parallel_infer": True,
         "repetition_penalty": 1.5
     }
 
-    response = requests.post(TTS_API_URL, json=payload)
+    response = requests.post(api_url, json=payload)
     if response.status_code == 200:
         output_dir = "outputs"
         os.makedirs(output_dir, exist_ok=True)
