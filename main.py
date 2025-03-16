@@ -1,9 +1,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from google import genai
-from google.genai import types
 import json
 import os
-import sys
 import asyncio
 from dotenv import load_dotenv
 from vision_module import VisionModule #  vision_module.py 的文件
