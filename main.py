@@ -1,9 +1,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from google import genai
-from google.genai import types
 import json
 import os
-import sys
 import asyncio
 from dotenv import load_dotenv
 from vision_module import VisionModule #  vision_module.py 的文件
@@ -18,6 +16,8 @@ load_dotenv()
 GENAI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GENAI_API_KEY:
     raise ValueError("🚨 ERROR: 未找到 GEMINI_API_KEY，请在 .env 文件中设置")
+
+TTS_API_URL = os.getenv("TTS_API_URL", "https://9pxgcoxlb9fk3n-9880.proxy.runpod.net/tts")
 
 client = genai.Client(api_key=GENAI_API_KEY)
 
@@ -161,7 +161,7 @@ async def websocket_endpoint(websocket: WebSocket):
                                 ai_response = gemini_response.text.strip() if gemini_response.text else "⚠️ AI 没有返回文本"
                                 ai_response = sanitize_string(ai_response)
                                 
-                                tts_path = synthesize_speech(ai_response)
+                                tts_path = synthesize_speech(ai_response, TTS_API_URL)
                                 tts_with_echo_path = add_echo_effect(tts_path)
                                 
                                 print(f"🎵 生成音频文件: {tts_with_echo_path}")
@@ -199,7 +199,7 @@ async def websocket_endpoint(websocket: WebSocket):
                             vision_text = vision_result.get("vision_response", "⚠️ 视觉模块无描述返回")
                             vision_text = sanitize_string(vision_text)
                             
-                            tts_path = synthesize_speech(vision_text)
+                            tts_path = synthesize_speech(vision_text, TTS_API_URL)
                             tts_with_echo_path = add_echo_effect(tts_path)
                             
                             print(f"🎵 生成视觉响应音频文件: {tts_with_echo_path}")

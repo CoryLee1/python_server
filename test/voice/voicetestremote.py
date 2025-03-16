@@ -1,9 +1,6 @@
 import requests
 import os
 from datetime import datetime
-from pedalboard import Pedalboard, Reverb
-from pedalboard.io import AudioFile
-import numpy as np
 
 def synthesize_speech(text, api_url="https://9pxgcoxlb9fk3n-9880.proxy.runpod.net/tts"):
     payload = {
