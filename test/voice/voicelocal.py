@@ -1,9 +1,6 @@
 import requests
 import os
 from datetime import datetime
-from pedalboard import Pedalboard, Reverb
-from pedalboard.io import AudioFile
-import numpy as np
 
 def synthesize_speech(text, api_url="http://127.0.0.1:9880/tts"):
     payload = {
