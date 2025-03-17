@@ -9,6 +9,7 @@ from voice import synthesize_speech, add_echo_effect  #  voice.py 的文件
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import uuid
+from fastapi.middleware.cors import CORSMiddleware
 
 # 确保输出目录存在
 OUTPUT_DIR = os.path.abspath("outputs")
@@ -135,6 +136,15 @@ class WebSocketManager:
 
 
 app = FastAPI()
+
+# 允许 WebSocket 连接来自任何地方
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 你可以改成 ["https://echuu.cktop.cc"] 以限制来源
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # 确保输出目录存在
 OUTPUT_DIR = os.path.abspath("outputs")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
