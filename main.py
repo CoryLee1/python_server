@@ -4,8 +4,11 @@ import json
 import os
 import asyncio
 from dotenv import load_dotenv
-from vision_module import VisionModule #  vision_module.py 的文件
-from voice import synthesize_speech, add_echo_effect #  voice.py 的文件
+from vision_module import VisionModule  #  vision_module.py 的文件
+from voice import synthesize_speech, add_echo_effect  #  voice.py 的文件
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import uuid
 
 # 确保输出目录存在
 OUTPUT_DIR = os.path.abspath("outputs")
@@ -29,6 +32,7 @@ DEFAULT_MODEL_CONFIG = {
 }
 DEFAULT_SYSTEM_PROMPT = "You are very 'brat' VTuber who interacts with your audience and provides rebellious and interesting responses. You can use Chinese, Japanese, and English.Limit your dialogue into 60 words or less."
 
+
 class Config:
     vision_enabled: bool = False
     blink_frequency: float = 3.0
@@ -36,8 +40,10 @@ class Config:
     text_prompt: str = DEFAULT_SYSTEM_PROMPT
     model_config: dict = DEFAULT_MODEL_CONFIG.copy()
 
+
 config = Config()
 vision_module = VisionModule(api_key=GENAI_API_KEY)
+
 
 def sanitize_string(s):
     """清理字符串,移除可能导致编码问题的字符"""
@@ -45,13 +51,16 @@ def sanitize_string(s):
         return s
     return ''.join(c for c in s if not (0xD800 <= ord(c) <= 0xDFFF))
 
+
 def get_absolute_audio_path(audio_path):
     """获取音频文件的绝对路径"""
     if not os.path.isabs(audio_path):
         return os.path.join(OUTPUT_DIR, os.path.basename(audio_path))
     return audio_path
 
+
 class WebSocketManager:
+
     def __init__(self, websocket: WebSocket):
         self.websocket = websocket
         self.is_connected = False
@@ -124,7 +133,25 @@ class WebSocketManager:
             return sanitize_string(d)
         return d
 
+
 app = FastAPI()
+# 确保输出目录存在
+OUTPUT_DIR = os.path.abspath("outputs")
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+print(f"✅ 确保输出目录存在: {OUTPUT_DIR}")
+
+# 挂载静态文件目录
+app.mount("/audio", StaticFiles(directory=OUTPUT_DIR), name="audio")
+
+
+# 添加直接访问音频文件的端点
+@app.get("/audio_file/{filename}")
+async def get_audio_file(filename: str):
+    file_path = os.path.join(OUTPUT_DIR, filename)
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "File not found"}
+
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -156,20 +183,23 @@ async def websocket_endpoint(websocket: WebSocket):
                                 gemini_response = client.models.generate_content(
                                     model="gemini-2.0-flash",
                                     contents=[final_prompt],
-                                    #generation_config=types.GenerationConfig(**config.model_config)
+                                    # generation_config=types.GenerationConfig(**config.model_config)
                                 )
                                 ai_response = gemini_response.text.strip() if gemini_response.text else "⚠️ AI 没有返回文本"
                                 ai_response = sanitize_string(ai_response)
                                 
-                                tts_path = synthesize_speech(ai_response, TTS_API_URL)
-                                tts_with_echo_path = add_echo_effect(tts_path)
-                                
-                                print(f"🎵 生成音频文件: {tts_with_echo_path}")
+                                # 构建服务器基础URL
+                                server_base_url = os.getenv("SERVER_BASE_URL", "http://localhost:8000")
+            
+                                # 生成音频并获取URL
+                                audio_url = synthesize_speech(ai_response, TTS_API_URL, return_url=True, server_base_url=server_base_url)
+                                print(f"🎵 生成音频URL: {audio_url}")
                                 
                                 await ws_manager.send_json({
                                     "type": "chat",
                                     "response_text": ai_response,
-                                    "audio_path": tts_path
+                                    "audio_url": audio_url,  # 使用audio_url字段
+                                    "audio_path": ""  # 保留空的audio_path以兼容旧版
                                 })
                             except Exception as e:
                                 print(f"❌ 生成AI响应时出错: {str(e)}")
@@ -200,7 +230,7 @@ async def websocket_endpoint(websocket: WebSocket):
                             vision_text = sanitize_string(vision_text)
                             
                             tts_path = synthesize_speech(vision_text, TTS_API_URL)
-                            tts_with_echo_path = add_echo_effect(tts_path)
+                            tts_with_echo_path = tts_path  # add_echo_effect(tts_path)
                             
                             print(f"🎵 生成视觉响应音频文件: {tts_with_echo_path}")
                             
@@ -247,6 +277,7 @@ async def websocket_endpoint(websocket: WebSocket):
             
     print(f"{'✅ 连接成功' if ws_manager.is_connected else '❌ 达到最大重试次数'}")
     await ws_manager.disconnect()
+
 
 if __name__ == "__main__":
     import uvicorn
