@@ -56,7 +56,7 @@ def synthesize_speech(text, api_url="https://9pxgcoxlb9fk3n-9880.proxy.runpod.ne
         # 返回 URL 或本地路径
         if return_url:
             if server_base_url is None:
-                server_base_url = "http://localhost:8000"
+                server_base_url = "SERVER_BASE_URL"
             audio_url = f"{server_base_url}/audio/{wav_filename}"
             return audio_url
         else:
