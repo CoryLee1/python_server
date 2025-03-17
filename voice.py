@@ -28,7 +28,7 @@ def synthesize_speech(text, api_url="https://9pxgcoxlb9fk3n-9880.proxy.runpod.ne
         "batch_threshold": 0.6,
         "split_bucket": True,
         "speed_factor": 1,
-        "fragment_interval": 0.3,
+        "fragment_interval": 0.1,
         "seed": -1,
         "media_type": media_type,  # 请求时使用wav格式
         "streaming_mode": True,
