@@ -199,7 +199,8 @@ async def websocket_endpoint(websocket: WebSocket):
                                 ai_response = sanitize_string(ai_response)
                                 
                                 # 构建服务器基础URL
-                                server_base_url = os.getenv("SERVER_BASE_URL", "http://localhost:8000")
+                                server_base_url = os.getenv("SERVER_BASE_URL", "https://server.echuu.cktop.cc")
+
             
                                 # 生成音频并获取URL
                                 audio_url = synthesize_speech(ai_response, TTS_API_URL, return_url=True, server_base_url=server_base_url)
