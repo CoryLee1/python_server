@@ -1,13 +1,15 @@
 import websocket
 import threading
+from dotenv import load_dotenv
 
-# Twitch 直播间信息
-TWITCH_CHANNEL = "anngeliving"
-OAUTH_TOKEN = "oauth:3qo5af6kq7rwr4uj6xmhpgxpo7sjdy"  # 你的OAuth Token
-NICKNAME = "anngeliving"
+# 加载 .env 配置
+load_dotenv()
 
-# Twitch WebSocket 服务器地址
-TWITCH_IRC_URL = "wss://irc-ws.chat.twitch.tv:443"
+# 从 .env 读取 Twitch 配置
+TWITCH_CHANNEL = os.getenv("TWITCH_CHANNEL")
+OAUTH_TOKEN = os.getenv("TWITCH_OAUTH_TOKEN")
+NICKNAME = os.getenv("TWITCH_NICKNAME")
+TWITCH_IRC_URL = os.getenv("TWITCH_IRC_URL")
 
 def on_message(ws, message):
     """处理收到的消息"""
