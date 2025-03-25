@@ -1,3 +1,6 @@
+import time
+from base64 import b64decode
+
 import requests
 import os
 from datetime import datetime
@@ -9,34 +12,47 @@ from pydub import AudioSegment  # 添加pydub库用于格式转换
 
 
 # 语音合成函数，返回生成的文件路径
-def synthesize_speech(text, api_url="https://9pxgcoxlb9fk3n-9880.proxy.runpod.net/tts", return_url=True, server_base_url=None):
+def synthesize_speech(
+    text,
+    api_url="https://api.runpod.ai/v2/wck3o4x8rjkwqs/runsync",
+    api_key="rpa_O642Y35DL1F5IHTCAI9MUN2NSLTF5FGP46B9ISIN1knj3s",
+    return_url=True,
+    server_base_url=None
+):
     """语音合成函数，可返回文件路径或URL"""
     # 请求TTS API时使用wav格式
     media_type = "wav"
     payload = {
-        "text": text,
-        "text_lang": "en",  # 'zh', 'en', 'ja'
-        "ref_audio_path":  "/workspace/ref_audio.mp3",
-        "aux_ref_audio_paths": [],
-        "prompt_lang": "zh",
-        "prompt_text": "早上好…_早上好，我们赶快出发吧，这世上有太多的东西都是「过时不候」的呢。",
-        "top_k": 4,
-        "top_p": 1,
-        "temperature": 0.9,
-        "text_split_method": "cut5",
-        "batch_size": 1,
-        "batch_threshold": 0.6,
-        "split_bucket": True,
-        "speed_factor": 1,
-        "fragment_interval": 0.2,
-        "seed": -1,
-        "media_type": media_type,  # 请求时使用wav格式
-        "streaming_mode": True,
-        "parallel_infer": True,
-        "repetition_penalty": 1.5
+        "input": {
+            "text": text,
+            "text_lang": "en",  # 'zh', 'en', 'ja'
+            "ref_audio_path":  "/runpod-volume/ref_audio.mp3",
+            "aux_ref_audio_paths": [],
+            "prompt_lang": "zh",
+            "prompt_text": "早上好…_早上好，我们赶快出发吧，这世上有太多的东西都是「过时不候」的呢。",
+            "top_k": 4,
+            "top_p": 1,
+            "temperature": 0.9,
+            "text_split_method": "cut5",
+            "batch_size": 1,
+            "batch_threshold": 0.6,
+            "split_bucket": True,
+            "speed_factor": 1,
+            "fragment_interval": 0.1,
+            "seed": -1,
+            "media_type": media_type,  # 请求时使用wav格式
+            "streaming_mode": True,
+            "parallel_infer": True,
+            "repetition_penalty": 1.5
+        }
     }
 
-    response = requests.post(api_url, json=payload)
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {api_key}'
+    }
+
+    response = requests.post(api_url, json=payload, headers=headers)
     if response.status_code == 200:
         output_dir = "outputs"
         os.makedirs(output_dir, exist_ok=True)
@@ -47,9 +63,9 @@ def synthesize_speech(text, api_url="https://9pxgcoxlb9fk3n-9880.proxy.runpod.ne
         
         wav_filename = f"output_{timestamp}_{unique_id}.wav"
         wav_path = os.path.join(output_dir, wav_filename)
-        
+
         with open(wav_path, "wb") as f:
-            f.write(response.content)
+            f.write(b64decode(response.json()["output"]["audio_data"]))
 
         print(f"✅ 生成 WAV 文件: {wav_path}")
 
@@ -62,7 +78,7 @@ def synthesize_speech(text, api_url="https://9pxgcoxlb9fk3n-9880.proxy.runpod.ne
         else:
             return wav_path
     else:
-        raise RuntimeError(f"TTS 生成失败：{response.text}")
+        raise RuntimeError(f"TTS 生成失败：[{response.status_code}], {response}")
 
 # 添加回声或混响效果的函数，返回处理后的音频路径
 def add_echo_effect(input_path):
