@@ -22,6 +22,7 @@ if not GENAI_API_KEY:
     raise ValueError("🚨 ERROR: 未找到 GEMINI_API_KEY，请在 .env 文件中设置")
 
 TTS_API_URL = os.getenv("TTS_API_URL", "https://9pxgcoxlb9fk3n-9880.proxy.runpod.net/tts")
+TTS_API_KEY = os.getenv("TTS_API_KEY", "rpa_O642Y35DL1F5IHTCAI9MUN2NSLTF5FGP46B9ISIN1knj3s")
 
 client = genai.Client(api_key=GENAI_API_KEY)
 
@@ -214,7 +215,13 @@ async def websocket_endpoint(websocket: WebSocket):
 
             
                                 # 生成音频并获取URL
-                                audio_url = synthesize_speech(ai_response, TTS_API_URL, return_url=True, server_base_url=server_base_url)
+                                audio_url = synthesize_speech(
+                                    text=ai_response,
+                                    api_url=TTS_API_URL,
+                                    api_key=TTS_API_KEY,
+                                    return_url=True,
+                                    server_base_url=server_base_url
+                                )
                                 print(f"🎵 生成音频URL: {audio_url}")
                                 
                                 await ws_manager.send_json({
@@ -251,7 +258,11 @@ async def websocket_endpoint(websocket: WebSocket):
                             vision_text = vision_result.get("vision_response", "⚠️ 视觉模块无描述返回")
                             vision_text = sanitize_string(vision_text)
                             
-                            tts_path = synthesize_speech(vision_text, TTS_API_URL)
+                            tts_path = synthesize_speech(
+                                text=vision_text,
+                                api_url=TTS_API_URL,
+                                api_key=TTS_API_KEY,
+                            )
                             tts_with_echo_path = tts_path  # add_echo_effect(tts_path)
                             
                             print(f"🎵 生成视觉响应音频文件: {tts_with_echo_path}")
