@@ -257,7 +257,6 @@ async def websocket_endpoint(websocket: WebSocket):
                             
                             tts_path = synthesize_speech(
                                 text=vision_text,
-                                api_url=TTS_API_URL,
                                 api_key=TTS_API_KEY,
                             )
                             tts_with_echo_path = tts_path  # add_echo_effect(tts_path)
