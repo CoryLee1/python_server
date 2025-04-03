@@ -5,6 +5,7 @@ description = "AI-powered Python backend with speech, vision, and 3D model gener
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "cartesia>=2.0.0",
     "dotenv>=0.9.9",
     "fastapi>=0.115.11",
     "firebase-admin>=6.7.0",

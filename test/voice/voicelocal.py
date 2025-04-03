@@ -5,20 +5,20 @@ from datetime import datetime
 def synthesize_speech(text, api_url="http://127.0.0.1:9880/tts"):
     payload = {
         "text": text,
-        "text_lang": "en",  # 'zh', 'en', 'ja'
-        "ref_audio_path": r"E:\BaiduNetdiskDownload\aa\纳西妲\9.早上好…_早上好，我们赶快出发吧，这世上有太多的东西都是「过时不候」的呢。.mp3",  # 可以留空，或者填你的参考音频路径
+        "text_lang": "zh",  # 'zh', 'en', 'ja'
+        "ref_audio_path": r"C:\Users\95801\Downloads\JP_SeemeunderstandmethenAIme.mp3",  # 可以留空，或者填你的参考音频路径
         "aux_ref_audio_paths": [],
-        "prompt_lang": "zh",
-        "prompt_text": "早上好…_早上好，我们赶快出发吧，这世上有太多的东西都是「过时不候」的呢。",
+        "prompt_lang": "ja",
+        "prompt_text": "私を見て、私を理解して，そして私を愛して",
         "top_k": 4,
         "top_p": 1,
-        "temperature": 0.9,
+        "temperature": 0.95,
         "text_split_method": "cut5",
         "batch_size": 1,
         "batch_threshold": 0.6,
         "split_bucket": True,
         "speed_factor": 1,
-        "fragment_interval": 0.1,
+        "fragment_interval": 2,
         "seed": -1,
         "media_type": "wav",  # 可以选 "wav" 或 "mp3"
         "streaming_mode": True,
@@ -45,4 +45,4 @@ def synthesize_speech(text, api_url="http://127.0.0.1:9880/tts"):
         print(f"语音合成失败，错误信息：{response.text}")
 
 
-synthesize_speech("That said, I firmly reject the **narrative of AI as merely a tool for cost-cutting and efficiency gains**, as well as the fear-mongering around it. These are often tactics used by the market to capture attention and manufacture anxiety. As creators, we should **redirect the conversation towards where attention should be placed**—exploring new ways to **co-create with AI** rather than being caught up in artificially induced fears or oversimplified narratives.At the same time, I think **decentralized, lightweight generative models** are a direction worth looking forward to. Giving creators the ability to **customize and have partial ownership over their AI agents** presents an exciting vision for the future—one where AI becomes an extension of individual artistic intent rather than a monolithic, corporate-controlled tool.")
+synthesize_speech("看见我，理解我，然后爱上我。")
