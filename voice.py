@@ -1,112 +1,64 @@
-import time
-from base64 import b64decode
-
-import requests
 import os
 from datetime import datetime
-from pedalboard import Pedalboard, Reverb
-from pedalboard.io import AudioFile
-import numpy as np
-import uuid
-from pydub import AudioSegment  # 添加pydub库用于格式转换
 
+import langdetect
+from cartesia import Cartesia, OutputFormat_Wav
+from dotenv import load_dotenv
+import uuid
+
+load_dotenv()
+
+voice_ids = {
+    "en": "6fc79973-fdc6-4e35-b6cd-4ed7f0d3f07f",
+    "zh-cn": "da14a540-4a31-4611-a40a-38b8ae3a296a",
+    "jp": "1f6f6bc0-98e4-4547-84ad-59db0bde0f3c",
+}
 
 # 语音合成函数，返回生成的文件路径
 def synthesize_speech(
-    text,
-    api_url="https://api.runpod.ai/v2/wck3o4x8rjkwqs/runsync",
-    api_key="rpa_O642Y35DL1F5IHTCAI9MUN2NSLTF5FGP46B9ISIN1knj3s",
+    text: str,
+    api_key: str = os.getenv("CARTESIA_API_KEY"),
     return_url=True,
-    server_base_url=None
+    server_base_url=None,
 ):
-    """语音合成函数，可返回文件路径或URL"""
-    # 请求TTS API时使用wav格式
-    media_type = "wav"
-    payload = {
-        "input": {
-            "text": text,
-            "text_lang": "en",  # 'zh', 'en', 'ja'
-            "ref_audio_path":  "/runpod-volume/ref_audio.mp3",
-            "aux_ref_audio_paths": [],
-            "prompt_lang": "zh",
-            "prompt_text": "早上好…_早上好，我们赶快出发吧，这世上有太多的东西都是「过时不候」的呢。",
-            "top_k": 4,
-            "top_p": 1,
-            "temperature": 0.9,
-            "text_split_method": "cut5",
-            "batch_size": 1,
-            "batch_threshold": 0.6,
-            "split_bucket": True,
-            "speed_factor": 1,
-            "fragment_interval": 0.1,
-            "seed": -1,
-            "media_type": media_type,  # 请求时使用wav格式
-            "streaming_mode": True,
-            "parallel_infer": True,
-            "repetition_penalty": 1.5
-        }
-    }
+    # 生成唯一的文件名
+    unique_id = str(uuid.uuid4())[:8]
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {api_key}'
-    }
+    filename = f"output_{timestamp}_{unique_id}.wav"
+    output_dir = "outputs"
+    os.makedirs(output_dir, exist_ok=True)
 
-    response = requests.post(api_url, json=payload, headers=headers)
-    if response.status_code == 200:
-        output_dir = "outputs"
-        os.makedirs(output_dir, exist_ok=True)
+    wav_path = os.path.join(output_dir, filename)
 
-        # 生成唯一的文件名
-        unique_id = str(uuid.uuid4())[:8]
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        
-        wav_filename = f"output_{timestamp}_{unique_id}.wav"
-        wav_path = os.path.join(output_dir, wav_filename)
+    lang = langdetect.detect(text)
+    if lang not in voice_ids:
+        lang = "en"
 
-        with open(wav_path, "wb") as f:
-            f.write(b64decode(response.json()["output"]["audio_data"]))
+    voice_id = voice_ids[lang]
 
-        print(f"✅ 生成 WAV 文件: {wav_path}")
+    client = Cartesia(api_key=api_key)
 
-        # 返回 URL 或本地路径
-        if return_url:
-            if server_base_url is None:
-                server_base_url = os.getenv("SERVER_BASE_URL", "https://server.echuu.cktop.cc")  # ✅ 确保是 HTTP 地址
-            audio_url = f"{server_base_url}/audio/{wav_filename}"
-            return audio_url
-        else:
-            return wav_path
+    audio_chunks = client.tts.bytes(
+        model_id="sonic-2",
+        transcript=text,
+        voice={"id": voice_id},
+        language="en",
+        output_format=OutputFormat_Wav(
+            sample_rate=44100,
+            encoding="pcm_s16le",
+        )
+    )
+
+    with open(wav_path, "wb") as f:
+        f.write(b''.join(audio_chunks))
+
+    if return_url:
+        if server_base_url is None:
+            server_base_url = os.getenv(
+                "SERVER_BASE_URL", "https://server.echuu.cktop.cc"
+            )
+        audio_url = f"{server_base_url}/audio/{filename}"
+        return audio_url
     else:
-        raise RuntimeError(f"TTS 生成失败：[{response.status_code}], {response}")
-
-# 添加回声或混响效果的函数，返回处理后的音频路径
-def add_echo_effect(input_path):
-    output_path = input_path.replace(".wav", "_echo.wav")
-    
-    # 分段读取并处理音频
-    with AudioFile(input_path) as input_file:
-        # 获取音频属性
-        samplerate = input_file.samplerate
-        num_channels = input_file.num_channels
-        
-        # 创建混响效果板
-        board = Pedalboard([Reverb(room_size=0.7)])
-        
-        # 准备输出文件
-        with AudioFile(output_path, 'w', samplerate, num_channels) as output_file:
-            # 读取音频数据 - 每次处理1024帧
-            chunk_size = 1024
-            
-            # 循环读取并处理音频块
-            while input_file.tell() < input_file.frames:
-                # 读取一个块
-                chunk = input_file.read(chunk_size)
-                
-                # 应用效果
-                effected_chunk = board(chunk, samplerate)
-                
-                # 写入处理后的块
-                output_file.write(effected_chunk)
-    
-    return output_path
+        return wav_path

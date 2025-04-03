@@ -4,11 +4,10 @@ import json
 import os
 import asyncio
 from dotenv import load_dotenv
-from vision_module import VisionModule  #  vision_module.py 的文件
-from voice import synthesize_speech, add_echo_effect  #  voice.py 的文件
+from vision_module import VisionModule
+from voice import synthesize_speech
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-import uuid
 from fastapi.middleware.cors import CORSMiddleware
 
 # 确保输出目录存在
@@ -21,7 +20,6 @@ GENAI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GENAI_API_KEY:
     raise ValueError("🚨 ERROR: 未找到 GEMINI_API_KEY，请在 .env 文件中设置")
 
-TTS_API_URL = os.getenv("TTS_API_URL", "https://9pxgcoxlb9fk3n-9880.proxy.runpod.net/tts")
 TTS_API_KEY = os.getenv("TTS_API_KEY", "rpa_O642Y35DL1F5IHTCAI9MUN2NSLTF5FGP46B9ISIN1knj3s")
 
 client = genai.Client(api_key=GENAI_API_KEY)
@@ -217,7 +215,6 @@ async def websocket_endpoint(websocket: WebSocket):
                                 # 生成音频并获取URL
                                 audio_url = synthesize_speech(
                                     text=ai_response,
-                                    api_url=TTS_API_URL,
                                     api_key=TTS_API_KEY,
                                     return_url=True,
                                     server_base_url=server_base_url
